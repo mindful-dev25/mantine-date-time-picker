@@ -82,6 +82,7 @@ export type DateTimePickerFactory = Factory<{
 
 const defaultProps: Partial<DateTimePickerProps> = {
   dropdownType: 'popover',
+  w: 'fit-content',
 };
 
 const classes: Record<string, string> = {};
