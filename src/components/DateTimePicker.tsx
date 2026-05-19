@@ -3,14 +3,11 @@ import { useRef, useState } from 'react';
 import {
   ActionIcon,
   ActionIconProps,
-  Box,
   BoxProps,
-  Button,
   factory,
   Factory,
   Group,
   InputVariant,
-  Stack,
   StylesApiProps,
   Text,
   useProps,
@@ -89,72 +86,151 @@ const defaultProps: Partial<DateTimePickerProps> = {
 
 const classes: Record<string, string> = {};
 
-interface TimeColumnProps {
-  label: string;
-  value: number;
-  onIncrement: () => void;
-  onDecrement: () => void;
+const CHEVRON_H = 28;
+const INPUT_H = 48;
+const COL_W = 56;
+const SEP_W = 22;
+
+function ChevronBtn({
+  direction,
+  onClick,
+  stopPropagation,
+}: {
+  direction: 'up' | 'down';
+  onClick: () => void;
   stopPropagation?: boolean;
-  incrementRef?: React.RefObject<HTMLButtonElement>;
+}) {
+  const [hovered, setHovered] = useState(false);
+  const Icon = direction === 'up' ? IconChevronUp : IconChevronDown;
+  return (
+    <div
+      onClick={onClick}
+      onMouseEnter={() => setHovered(true)}
+      onMouseLeave={() => setHovered(false)}
+      data-mantine-stop-propagation={stopPropagation || undefined}
+      style={{
+        width: COL_W,
+        height: CHEVRON_H,
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'center',
+        cursor: 'pointer',
+        borderRadius: 'var(--mantine-radius-sm)',
+        color: hovered ? 'var(--mantine-color-text)' : 'var(--mantine-color-dimmed)',
+        transition: 'color 120ms ease',
+        flexShrink: 0,
+        userSelect: 'none',
+      }}
+    >
+      <Icon size={14} stroke={2.5} />
+    </div>
+  );
 }
 
-function TimeColumn({ label, value, onIncrement, onDecrement, stopPropagation, incrementRef }: TimeColumnProps) {
+interface TimeWheelProps {
+  ariaLabel: string;
+  value: number;
+  max: number;
+  onChange: (v: number) => void;
+  stopPropagation?: boolean;
+  inputRef?: React.RefObject<HTMLInputElement>;
+}
+
+function TimeWheel({ ariaLabel, value, max, onChange, stopPropagation, inputRef }: TimeWheelProps) {
+  const [draft, setDraft] = useState<string | null>(null);
+
+  const prev = ((value - 1) + (max + 1)) % (max + 1);
+  const next = (value + 1) % (max + 1);
+  const displayValue = draft !== null ? draft : String(value).padStart(2, '0');
+
+  const commit = (raw: string) => {
+    const num = parseInt(raw || '0', 10);
+    onChange(isNaN(num) ? 0 : Math.max(0, Math.min(max, num)));
+    setDraft(null);
+  };
+
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const raw = e.target.value.replace(/\D/g, '').slice(0, 2);
+    setDraft(raw);
+    const num = parseInt(raw, 10);
+    if (!isNaN(num) && num >= 0 && num <= max) onChange(num);
+  };
+
+  const handleFocus = (e: React.FocusEvent<HTMLInputElement>) => {
+    setDraft(String(value).padStart(2, '0'));
+    e.target.select();
+  };
+
+  const handleBlur = () => {
+    commit(draft ?? '');
+  };
+
+  const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
+    if (e.key === 'ArrowUp') {
+      e.preventDefault();
+      setDraft(null);
+      onChange(prev);
+    } else if (e.key === 'ArrowDown') {
+      e.preventDefault();
+      setDraft(null);
+      onChange(next);
+    } else if (e.key === 'Enter') {
+      commit(draft ?? '');
+    }
+  };
+
+  const handleWheel = (e: React.WheelEvent) => {
+    e.stopPropagation();
+    onChange(e.deltaY > 0 ? next : prev);
+  };
+
   return (
-    <Stack align="center" gap={4}>
-      <Text
-        size="10px"
-        c="dimmed"
-        fw={700}
-        tt="uppercase"
-        style={{ letterSpacing: '0.1em' }}
-      >
-        {label}
-      </Text>
-      <ActionIcon
-        ref={incrementRef}
-        variant="subtle"
-        color="blue"
-        size="sm"
-        radius="xl"
-        onClick={onIncrement}
+    <div
+      onWheel={handleWheel}
+      style={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}
+    >
+      <ChevronBtn
+        direction="up"
+        onClick={() => { setDraft(null); onChange(prev); }}
+        stopPropagation={stopPropagation}
+      />
+      <input
+        ref={inputRef}
+        type="text"
+        inputMode="numeric"
+        role="spinbutton"
+        aria-label={ariaLabel}
+        aria-valuenow={value}
+        aria-valuemin={0}
+        aria-valuemax={max}
+        value={displayValue}
+        onChange={handleChange}
+        onFocus={handleFocus}
+        onBlur={handleBlur}
+        onKeyDown={handleKeyDown}
         data-mantine-stop-propagation={stopPropagation || undefined}
-      >
-        <IconChevronUp size={14} stroke={2.5} />
-      </ActionIcon>
-      <Box
         style={{
-          width: 52,
-          height: 42,
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'center',
-          background: 'var(--mantine-color-blue-light)',
-          borderRadius: 8,
-          border: '1.5px solid var(--mantine-color-blue-light-hover)',
-          cursor: 'default',
-          userSelect: 'none',
+          width: COL_W,
+          height: INPUT_H,
+          textAlign: 'center',
+          fontWeight: 700,
+          fontSize: '1.375rem',
+          fontFamily: 'inherit',
+          fontVariantNumeric: 'tabular-nums',
+          background: 'transparent',
+          color: 'var(--mantine-color-text)',
+          border: 'none',
+          outline: 'none',
+          cursor: 'text',
+          transition: 'color 100ms ease',
         }}
-      >
-        <Text
-          fw={700}
-          size="xl"
-          c="blue.7"
-          style={{ fontVariantNumeric: 'tabular-nums', lineHeight: 1 }}
-        >
-          {String(value).padStart(2, '0')}
-        </Text>
-      </Box>
-      <ActionIcon
-        variant="subtle"
-        color="blue"
-        size="sm"
-        radius="xl"
-        onClick={onDecrement}
-        data-mantine-stop-propagation={stopPropagation || undefined}
-      >
-        <IconChevronDown size={14} stroke={2.5} />
-      </ActionIcon>
-    </Stack>
+      />
+      <ChevronBtn
+        direction="down"
+        onClick={() => { setDraft(null); onChange(next); }}
+        stopPropagation={stopPropagation}
+      />
+    </div>
   );
 }
 
@@ -203,7 +279,7 @@ const DateTimePicker = factory<DateTimePickerFactory>((_props, ref) => {
 
   const timeInputRef = useRef<HTMLInputElement>();
   const timeInputRefMerged = useMergedRef(timeInputRef, timeInputProps?.ref);
-  const hoursIncrementRef = useRef<HTMLButtonElement>(null);
+  const hoursInputRef = useRef<HTMLInputElement>(null);
 
   const {
     calendarProps: { allowSingleDateInRange, ...calendarProps },
@@ -245,23 +321,10 @@ const DateTimePicker = factory<DateTimePickerFactory>((_props, ref) => {
     setValue(assignTime(timeDate, _value || shiftTimezone('add', new Date(), ctx.getTimezone())));
   };
 
-  const adjustHours = (delta: number) => {
-    applyTime(((currentHours + delta) % 24 + 24) % 24, currentMinutes, currentSeconds);
-  };
-
-  const adjustMinutes = (delta: number) => {
-    applyTime(currentHours, ((currentMinutes + delta) % 60 + 60) % 60, currentSeconds);
-  };
-
-  const adjustSeconds = (delta: number) => {
-    applyTime(currentHours, currentMinutes, ((currentSeconds + delta) % 60 + 60) % 60);
-  };
-
   const handleTimeChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     timeInputProps?.onChange?.(event);
     const val = event.currentTarget.value;
     setTimeValue(val);
-
     if (val) {
       const [hours, minutes, seconds] = val.split(':').map(Number);
       const timeDate = shiftTimezone('add', new Date(), ctx.getTimezone());
@@ -273,10 +336,8 @@ const DateTimePicker = factory<DateTimePickerFactory>((_props, ref) => {
   };
 
   const handleDateChange = (date: DateValue) => {
-    if (date) {
-      setValue(assignTime(_value, date));
-    }
-    hoursIncrementRef.current?.focus();
+    if (date) setValue(assignTime(_value, date));
+    hoursInputRef.current?.focus();
   };
 
   const handleTimeInputKeyDown = (event: React.KeyboardEvent<HTMLInputElement>) => {
@@ -288,15 +349,11 @@ const DateTimePicker = factory<DateTimePickerFactory>((_props, ref) => {
   };
 
   useDidUpdate(() => {
-    if (!dropdownOpened) {
-      setTimeValue(formatTime(_value!));
-    }
+    if (!dropdownOpened) setTimeValue(formatTime(_value!));
   }, [_value, dropdownOpened]);
 
   useDidUpdate(() => {
-    if (dropdownOpened) {
-      setCurrentLevel('month');
-    }
+    if (dropdownOpened) setCurrentLevel('month');
   }, [dropdownOpened]);
 
   const minTime = minDate ? dayjs(minDate).format('HH:mm:ss') : null;
@@ -348,7 +405,7 @@ const DateTimePicker = factory<DateTimePickerFactory>((_props, ref) => {
         __timezoneApplied
       />
 
-      {/* Hidden TimeInput kept for ref and form integration */}
+      {/* Visually hidden — kept for form integration and timeInputProps forwarding */}
       <TimeInput
         value={timeValue}
         withSeconds={withSeconds}
@@ -373,102 +430,158 @@ const DateTimePicker = factory<DateTimePickerFactory>((_props, ref) => {
         onKeyDown={handleTimeInputKeyDown}
         size={size}
         data-mantine-stop-propagation={__stopPropagation || undefined}
+        aria-hidden="true"
+        tabIndex={-1}
         style={{
           position: 'absolute',
-          opacity: 0,
-          pointerEvents: 'none',
-          width: 1,
-          height: 1,
+          width: '1px',
+          height: '1px',
+          padding: 0,
+          margin: '-1px',
           overflow: 'hidden',
+          clip: 'rect(0,0,0,0)',
+          whiteSpace: 'nowrap',
+          border: 0,
         }}
       />
 
       {currentLevel === 'month' && (
         <div
           {...getStyles('timeWrapper')}
+          role="group"
+          aria-label="Time"
           style={{
             padding: '12px 16px 14px',
+            background: 'var(--mantine-color-body)',
             borderTop: '1px solid var(--mantine-color-default-border)',
           }}
         >
-          <Stack gap="xs">
-            <Group justify="center" gap={6}>
-              <IconClock size={13} style={{ color: 'var(--mantine-color-dimmed)' }} />
-              <Text
-                size="xs"
-                c="dimmed"
-                fw={600}
-                tt="uppercase"
-                style={{ letterSpacing: '0.06em' }}
+          <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 4 }}>
+            {/* Labels row — phantom spacers mirror icon+button widths so columns stay aligned */}
+            <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+              <div style={{ width: 34, flexShrink: 0 }} />
+              <Group gap={0}>
+                <Text size="9px" fw={700} tt="uppercase" c="dimmed" style={{ width: COL_W, textAlign: 'center', letterSpacing: '0.1em' }}>
+                  Hours
+                </Text>
+                <div style={{ width: SEP_W }} />
+                <Text size="9px" fw={700} tt="uppercase" c="dimmed" style={{ width: COL_W, textAlign: 'center', letterSpacing: '0.1em' }}>
+                  Min
+                </Text>
+                {withSeconds && (
+                  <>
+                    <div style={{ width: SEP_W }} />
+                    <Text size="9px" fw={700} tt="uppercase" c="dimmed" style={{ width: COL_W, textAlign: 'center', letterSpacing: '0.1em' }}>
+                      Sec
+                    </Text>
+                  </>
+                )}
+              </Group>
+              <div style={{ width: 36, flexShrink: 0 }} />
+            </div>
+
+            {/* Main row: icon + wheels + button — align-items center now uses only wheel height */}
+            <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+              {/* Clock badge */}
+              <div
+                aria-hidden="true"
+                style={{
+                  width: 34,
+                  height: 34,
+                  borderRadius: '50%',
+                  background: 'var(--mantine-color-default)',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  flexShrink: 0,
+                }}
               >
-                Set Time
-              </Text>
-            </Group>
+                <IconClock size={17} style={{ color: 'var(--mantine-color-dimmed)' }} aria-hidden="true" />
+              </div>
 
-            <Group justify="center" align="flex-end" gap="xs">
-              <TimeColumn
-                label="Hours"
-                value={currentHours}
-                onIncrement={() => adjustHours(1)}
-                onDecrement={() => adjustHours(-1)}
-                stopPropagation={__stopPropagation}
-                incrementRef={hoursIncrementRef}
-              />
-
-              <Text
-                fw={800}
-                size="xl"
-                c="blue.4"
-                style={{ paddingBottom: 14, lineHeight: 1 }}
-              >
-                :
-              </Text>
-
-              <TimeColumn
-                label="Minutes"
-                value={currentMinutes}
-                onIncrement={() => adjustMinutes(1)}
-                onDecrement={() => adjustMinutes(-1)}
-                stopPropagation={__stopPropagation}
-              />
-
-              {withSeconds && (
-                <>
-                  <Text
-                    fw={800}
-                    size="xl"
-                    c="blue.4"
-                    style={{ paddingBottom: 14, lineHeight: 1 }}
+              {/* Wheels with unified selection track */}
+              <div style={{ position: 'relative' }}>
+                <div
+                  aria-hidden="true"
+                  style={{
+                    position: 'absolute',
+                    top: CHEVRON_H,
+                    left: 0,
+                    right: 0,
+                    height: INPUT_H,
+                    background: 'var(--mantine-color-default)',
+                    border: '1px solid var(--mantine-color-default-border)',
+                    borderRadius: 'var(--mantine-radius-md)',
+                    boxShadow: '0 1px 3px rgba(0,0,0,0.04)',
+                    pointerEvents: 'none',
+                  }}
+                />
+                <Group gap={0} wrap="nowrap" align="center" style={{ position: 'relative', zIndex: 1 }}>
+                  <TimeWheel
+                    ariaLabel="Hours"
+                    value={currentHours}
+                    max={23}
+                    onChange={(h) => applyTime(h, currentMinutes, currentSeconds)}
+                    stopPropagation={__stopPropagation}
+                    inputRef={hoursInputRef}
+                  />
+                  <div
+                    aria-hidden="true"
+                    style={{
+                      width: SEP_W,
+                      textAlign: 'center',
+                      fontWeight: 800,
+                      fontSize: '1.1rem',
+                      color: 'var(--mantine-color-dimmed)',
+                      flexShrink: 0,
+                    }}
                   >
                     :
-                  </Text>
-                  <TimeColumn
-                    label="Seconds"
-                    value={currentSeconds}
-                    onIncrement={() => adjustSeconds(1)}
-                    onDecrement={() => adjustSeconds(-1)}
+                  </div>
+                  <TimeWheel
+                    ariaLabel="Minutes"
+                    value={currentMinutes}
+                    max={59}
+                    onChange={(m) => applyTime(currentHours, m, currentSeconds)}
                     stopPropagation={__stopPropagation}
                   />
-                </>
-              )}
-            </Group>
+                  {withSeconds && (
+                    <>
+                      <div
+                        aria-hidden="true"
+                        style={{ width: SEP_W, textAlign: 'center', fontWeight: 800, fontSize: '1.1rem', color: 'var(--mantine-color-dimmed)', flexShrink: 0 }}
+                      >
+                        :
+                      </div>
+                      <TimeWheel
+                        ariaLabel="Seconds"
+                        value={currentSeconds}
+                        max={59}
+                        onChange={(s) => applyTime(currentHours, currentMinutes, s)}
+                        stopPropagation={__stopPropagation}
+                      />
+                    </>
+                  )}
+                </Group>
+              </div>
 
-            <Button
-              fullWidth
-              size="xs"
-              variant="light"
-              color="blue"
-              radius="md"
-              leftSection={<IconCheck size={13} stroke={2.5} />}
-              data-mantine-stop-propagation={__stopPropagation || undefined}
-              onClick={(event) => {
-                (submitButtonProps as any)?.onClick?.(event);
-                dropdownHandlers.close();
-              }}
-            >
-              Confirm
-            </Button>
-          </Stack>
+              {/* Confirm button */}
+              <ActionIcon
+                variant="filled"
+                size={36}
+                radius="xl"
+                aria-label="Confirm time selection"
+                style={{ flexShrink: 0 }}
+                data-mantine-stop-propagation={__stopPropagation || undefined}
+                onClick={(event) => {
+                  (submitButtonProps as any)?.onClick?.(event);
+                  dropdownHandlers.close();
+                }}
+              >
+                <IconCheck size={16} stroke={3} />
+              </ActionIcon>
+            </div>
+          </div>
         </div>
       )}
     </PickerInputBase>
