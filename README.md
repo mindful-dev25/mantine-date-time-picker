@@ -1,6 +1,6 @@
 # Mantine DateTime Picker
 
-A DateTime picker component for [Mantine UI](https://mantine.dev) combining a calendar and a scroll-wheel time selector.
+A [Mantine UI](https://mantine.dev) DateTime picker with a scroll-wheel time selector, keyboard navigation, and optional seconds support.
 
 ## [Live Demo](https://datetime-picker-demo.surge.sh)
 
