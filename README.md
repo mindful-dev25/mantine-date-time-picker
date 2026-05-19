@@ -14,6 +14,13 @@ yarn add mantine-datetime-picker
 npm install mantine-datetime-picker
 ```
 
+> Be sure to include Mantine core and dates CSS in your app:
+>
+> ```js
+> import '@mantine/core/styles.css';
+> import '@mantine/dates/styles.css';
+> ```
+
 #### PeerDependencies (Packages required or installed seperately)
 1. @mantine/core
 2. @mantine/dates
