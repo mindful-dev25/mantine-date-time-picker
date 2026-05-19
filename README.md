@@ -2,7 +2,7 @@
 
 A [Mantine UI](https://mantine.dev) DateTime picker with a scroll-wheel time selector, keyboard navigation, and optional seconds support.
 
-<img width="314" height="550" alt="image" src="https://github.com/user-attachments/assets/2c4f9dd1-0128-4a65-819b-cd4876973760" />
+<img width="296" height="539" alt="image" src="https://github.com/user-attachments/assets/ff8e7c33-53b0-4fbe-9c12-0d2c3bd33341" />
 
 ## [Live Demo](https://datetime-picker-demo.surge.sh)
 
