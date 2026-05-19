@@ -3,7 +3,7 @@
 	"description": "Mantine UI Datetime Picker component.",
 	"version": "1.1.7",
 	"license": "MIT",
-	"homepage": "https://mantine-datetime-picker.surge.sh",
+	"homepage": "https://datetime-picker-demo.surge.sh",
 	"repository": {
 		"url": "https://github.com/adam5909099/mantine-date-time-picker",
 		"type": "git"

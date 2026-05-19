@@ -1,43 +1,68 @@
-# Mantine Datetime Picker
+# Mantine DateTime Picker
 
-[Mantine UI](https://mantine.dev) Datetime picker component.
+A DateTime picker component for [Mantine UI](https://mantine.dev) combining a calendar and a scroll-wheel time selector.
 
-## [Live Demo](https://mantine-datetime-picker.surge.sh)
+## [Live Demo](https://datetime-picker-demo.surge.sh)
 
 ## Installation
 
 ```bash
-# With yarn
-yarn add mantine-datetime-picker
-
-# With npm
+# npm
 npm install mantine-datetime-picker
+
+# yarn
+yarn add mantine-datetime-picker
 ```
 
-> Be sure to include Mantine core and dates CSS in your app:
->
-> ```js
-> import '@mantine/core/styles.css';
-> import '@mantine/dates/styles.css';
-> ```
+Include Mantine styles in your app entry point:
 
-#### PeerDependencies (Packages required or installed seperately)
-1. @mantine/core
-2. @mantine/dates
-3. @mantine/hooks
-4. @tabler/icons-react
-5. dayjs
-6. @emotion/react
+```js
+import '@mantine/core/styles.css';
+import '@mantine/dates/styles.css';
+```
 
-### Props
-1. It take all [DatePicker Props](https://mantine.dev/dates/date-picker/?t=props)
+## Usage
 
-| prop        | type    | description                                   | default |
-|-------------|---------|-----------------------------------------------|---------|
-| hideNow     | boolean | Hide the `now` date&time button.       | false   |
-| autoHideNow | boolean | Auto hide `now` button based on minDate and maxDate. `hideNow` will override this prop. | true    |
-| nowLabel | string | Label for `Now` button | Now   |
-| okLabel | string | Label for `Ok` button | Ok    |
+```tsx
+import { DateTimePicker } from 'mantine-datetime-picker';
+
+function Demo() {
+  return (
+    <DateTimePicker
+      label="Pick a date and time"
+      placeholder="DD/MM/YYYY HH:mm"
+    />
+  );
+}
+```
+
+## Props
+
+Accepts all [DatePicker props](https://mantine.dev/dates/date-picker/?t=props) plus the following:
+
+| Prop | Type | Default | Description |
+|------|------|---------|-------------|
+| `value` | `Date \| null` | — | Controlled value |
+| `defaultValue` | `Date \| null` | — | Initial value for uncontrolled usage |
+| `onChange` | `(value: Date \| null) => void` | — | Called when the value changes |
+| `valueFormat` | `string` | `"DD/MM/YYYY HH:mm"` | [Dayjs format](https://day.js.org/docs/en/display/format) for the input display value |
+| `withSeconds` | `boolean` | `false` | Show a seconds wheel in the time picker |
+| `timeInputProps` | `TimeInputProps` | — | Props forwarded to the hidden `TimeInput` (for form integration) |
+| `submitButtonProps` | `ActionIconProps` | — | Props forwarded to the confirm button |
+| `w` | `number \| string` | `"fit-content"` | Input width — override with a fixed value for full-width layouts |
+
+## Peer dependencies
+
+These packages must be installed in your project:
+
+| Package | Version |
+|---------|---------|
+| `@mantine/core` | `^7.12.1` |
+| `@mantine/dates` | `^7.12.1` |
+| `@mantine/hooks` | `^7.12.1` |
+| `@tabler/icons-react` | `^2.4.0` |
+| `dayjs` | `^1.11.7` |
+| `react` | `^18.2.0` |
 
 ## License
 
