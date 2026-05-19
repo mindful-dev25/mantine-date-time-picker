@@ -2,7 +2,6 @@
 	"name": "mantine-datetime-picker",
 	"description": "Mantine UI Datetime Picker component.",
 	"version": "1.1.7",
-	"private": false,
 	"license": "MIT",
 	"homepage": "https://mantine-datetime-picker.surge.sh",
 	"repository": {
@@ -29,7 +28,6 @@
 		"dayjs": "^1.11.7",
 		"react": "^18.2.0"
 	},
-	"dependencies": {},
 	"devDependencies": {
 		"@emotion/react": "^11.10.5",
 		"@mantine/core": "^7.12.1",
